@@ -32,7 +32,7 @@ class PersonReID:
             "from_file and from_tensor can't be set at the same time."
 
         # Set up the threshold
-        self.CONFIDENT_THRESHOLD = dict(extreme=0.95, normal=0.85)
+        self.CONFIDENT_THRESHOLD = dict(extreme=0.95, normal=0.70)
         self.cos_scorer = torch.nn.CosineSimilarity(dim=1, eps=1e-6)
 
         # Init the embeddings
