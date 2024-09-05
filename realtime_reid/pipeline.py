@@ -12,7 +12,7 @@ from .visualization_utils import color
 class Pipeline:
     def __init__(self,
                 detector: PersonDetector = PersonDetector(),
-                descriptor: PersonDescriptor = PersonDetector(),
+                descriptor: PersonDescriptor = PersonDescriptor(),
                 classifier: PersonReID = PersonReID()) -> None:
         """Initialize the pipeline by creating the necessary objects."""
 
