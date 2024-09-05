@@ -11,6 +11,7 @@ def parse_args():
 
     parser.add_argument("-c", "--camera",
                         type=str,
+                        default="0",
                         required=False,
                         help="Path to the camera demo video.")
 

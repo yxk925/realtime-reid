@@ -20,7 +20,7 @@ class VideoProducer:
         self.producer = KafkaProducer(bootstrap_servers=bootstrap_servers)
         self.TOPIC = topic
 
-    def encode_and_produce(self, frame, interval: float):
+    def encode_and_produce(self, frame):
         frame = self.process_frame(frame)
 
         # Convert image to jpg format
@@ -29,16 +29,14 @@ class VideoProducer:
         # Convert to bytes and send to Kafka
         self.producer.send(self.TOPIC, buffer.tobytes())
 
-        time.sleep(interval)
-
-    def publish_from_video(self, source_path):
-        # Open video file
-        video = cv2.VideoCapture(source_path)
+    def publish_from_video(self, source):
+        video = cv2.VideoCapture(source)            
 
         # Set default interval for video to video FPS
         if self.INTERVAL == -1:
             self.INTERVAL = 1 / video.get(cv2.CAP_PROP_FPS)
 
+        last_time = -1
         while video.isOpened():
             success, frame = video.read()
 
@@ -46,7 +44,13 @@ class VideoProducer:
             if not success:
                 print("bad read!")
                 break
-            self.encode_and_produce(frame, self.INTERVAL)
+            
+            if last_time < 0 or (time.time() - last_time) > self.INTERVAL:
+                self.encode_and_produce(frame)
+                last_time = time.time()
+            
+            cv2.waitKey(1)
+            
         video.release()
         return True
 
@@ -63,7 +67,8 @@ class VideoProducer:
             image_path = os.path.join(source_path, img)
             frame = cv2.imread(image_path)
 
-            self.encode_and_produce(frame, self.INTERVAL)
+            self.encode_and_produce(frame)
+            time.sleep(self.INTERVAL)
         return True
 
     def publish_video(self, source: str):
@@ -81,10 +86,13 @@ class VideoProducer:
             if os.path.isfile(source):
                 print(f"Publish from video {source} to topic {self.TOPIC}")
                 self.publish_from_video(source)
-            else:
+            elif os.path.isdir(source):
                 print(f"Publish from folder {source} to topic {self.TOPIC}")
                 self.publish_from_img_folder(source)
-
+            else:
+                print(f"Publish from source {source} to topic {self.TOPIC}")
+                source_int = int(source)
+                self.publish_from_video(source_int)
             print('Publish complete!')
         except KeyboardInterrupt:
             print("Publish stopped.")
