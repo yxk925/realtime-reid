@@ -9,7 +9,7 @@ from realtime_reid.pipeline import Pipeline
 DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
 DEFAULT_TOPIC_2 = "NULL"  # No second topic by default
 DEFAULT_APPLY_REID = False  # Do not apply reid by default
-
+img_count = 0
 
 def parse_args():
     """Parse User's input arguments."""
@@ -65,11 +65,14 @@ def process_messages(consumer: KafkaConsumer,
         # Process the message
         final_img = np.frombuffer(msg.value, dtype=np.uint8)
         final_img = cv2.imdecode(final_img, cv2.IMREAD_COLOR)
-        if APPLY_REID and not INTEGRATE_SPARK:
-            final_img = reid_pipeline.process(msg.value, save_dir=args['save_dir'])
+        global img_count
+        img_count = img_count + 1
+        if img_count % 10 == 0:
+            if APPLY_REID and not INTEGRATE_SPARK:
+                final_img = reid_pipeline.process(msg.value, save_dir=args['save_dir'])
 
-        # Add the processed image to the Queue
-        processed_images.put((consumer_name, final_img))
+            # Add the processed image to the Queue
+            processed_images.put((consumer_name, final_img))
 
 
 def start_threads(consumer_00: KafkaConsumer,
@@ -85,7 +88,7 @@ def start_threads(consumer_00: KafkaConsumer,
     )
 
     thread_0.start()
-    thread_1.start()
+    # thread_1.start()
 
     return thread_0, thread_1
 
@@ -125,7 +128,7 @@ def main():
 
     # Wait for both threads to finish
     thread_0.join()
-    thread_1.join()
+    # thread_1.join()
 
     # Closes all the frames
     cv2.destroyAllWindows()
