@@ -28,11 +28,11 @@ class PersonDetector:
         The result Image after drawing detected boxes, stored in `bytes`.
         """
         # Convert the received image bytes to a PIL Image
-        image = cv2.imdecode(
-            np.frombuffer(input_bytes, np.uint8),
-            cv2.IMREAD_COLOR
-        )
+        # image = cv2.imdecode(
+        #     np.frombuffer(input_bytes, np.uint8),
+        #     cv2.IMREAD_COLOR
+        # )
 
         # Perform object detection
-        results = self.yolo(image, classes=[0], device=device)
+        results = self.yolo(input_bytes, classes=[0], device=device)
         return results
